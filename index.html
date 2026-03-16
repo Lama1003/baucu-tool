@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tool kiểm phiếu</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:40px;
+}
+
+input{
+margin:5px;
+width:80px;
+}
+
+table,td,th{
+border:1px solid black;
+border-collapse:collapse;
+padding:6px;
+}
+
+textarea{
+font-family:monospace;
+}
+
+.row{
+display:flex;
+}
+
+.bad{
+background:#ffd6d6;
+}
+
+.good{
+background:#ffffff;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Tool kiểm phiếu</h2>
+
+Số ứng viên <input id="a" value="5" oninput="tinh()"><br>
+Số cần bầu <input id="b" value="3" oninput="tinh()"><br>
+Số cần gạch <input id="c" value="2" oninput="tinh()"><br><br>
+
+Phiếu (mỗi dòng 1 phiếu)
+
+<br><br>
+
+<div class="row">
+
+<textarea id="stt" rows="15" cols="4" readonly
+style="background:#eee;text-align:right"></textarea>
+
+<textarea id="phieu" rows="15" cols="30"
+oninput="capnhat()"></textarea>
+
+<textarea id="debug" rows="15" cols="30" readonly
+style="background:#f5f5f5"></textarea>
+
+</div>
+
+<br>
+
+<h3>Kết quả</h3>
+
+<div id="ketqua"></div>
+
+<script>
+
+function capnhat(){
+
+capnhatSTT()
+tinh()
+
+}
+
+function capnhatSTT(){
+
+let text=document.getElementById("phieu").value
+
+let lines=text.split("\n")
+
+let stt=""
+
+for(let i=1;i<=lines.length;i++)
+stt+=i+"\n"
+
+document.getElementById("stt").value=stt
+
+}
+
+function tinh(){
+
+let a=parseInt(document.getElementById("a").value)
+let b=parseInt(document.getElementById("b").value)
+let c=parseInt(document.getElementById("c").value)
+
+let lines=document.getElementById("phieu").value.split("\n")
+
+let sophieu=0
+let sogach=0
+let sobau=0
+let sophieucanxemlai=0
+
+let gach=new Array(a+1).fill(0)
+let uv=new Array(a+1).fill(0)
+
+let demgach={}
+let debug=""
+
+for(let s of lines){
+
+s=s.trim()
+
+if(s=="" ) continue
+
+if(s=="end") break
+
+if(s.length<c || s.length>=a){
+
+debug+=s+" → phiếu không hợp lệ\n"
+sophieucanxemlai++
+sophieu++
+continue
+
+}
+
+sophieu++
+
+let len=s.length
+
+if(!demgach[len])
+demgach[len]=0
+
+demgach[len]++
+
+let detail=s+" → gạch "
+
+for(let ch of s){
+
+let id=parseInt(ch)
+
+if(id>=1 && id<=a){
+
+gach[id]++
+detail+=id+" "
+
+}
+
+}
+
+debug+=detail+"\n"
+
+}
+
+for(let i=1;i<=a;i++)
+uv[i]=sophieu-gach[i]
+
+let html="<table>"
+html+="<tr><th>Ứng viên</th><th>Phiếu đạt</th><th>% đạt</th><th>Phiếu gạch</th><th>% gạch</th></tr>"
+
+for(let i=1;i<=a;i++){
+
+let pdat=(sophieu?uv[i]/sophieu*100:0).toFixed(2)
+let pgach=(sophieu?gach[i]/sophieu*100:0).toFixed(2)
+
+html+=`<tr>
+<td>${i}</td>
+<td>${uv[i]}</td>
+<td>${pdat}%</td>
+<td>${gach[i]}</td>
+<td>${pgach}%</td>
+</tr>`
+
+sobau+=uv[i]
+sogach+=gach[i]
+
+}
+
+html+="</table>"
+
+html+=`<br><b>Tổng số phiếu:</b> ${sophieu}`
+html+=`<br><b>Tổng đạt:</b> ${sobau}`
+html+=`<br><b>Tổng gạch:</b> ${sogach}`
+html+=`<br><b>Phiếu cần xem lại:</b> ${sophieucanxemlai}`
+
+html+="<br><br><b>Thống kê số gạch theo số ký tự</b><br>"
+
+for(let k in demgach)
+html+=`Số phiếu gạch ${k} = ${demgach[k]}<br>`
+
+document.getElementById("ketqua").innerHTML=html
+
+document.getElementById("debug").value=debug
+
+}
+
+</script>
+
+</body>
+</html>
